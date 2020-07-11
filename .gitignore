@@ -1,1 +1,5 @@
 /Library
+/obj
+/.vs
+/Assembly-CSharp.csproj
+/contact_project.sln
