@@ -1,5 +1,9 @@
 ﻿using UnityEngine;
 using devlog98.Mouse;
+using System.Collections;
+using devlog98.UI;
+using UnityEngine.SceneManagement;
+using devlog98.Audio;
 
 namespace devlog98.Player {
     public class Player : MonoBehaviour {
@@ -10,13 +14,23 @@ namespace devlog98.Player {
         [Header("Jump")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private float jumpSpeed; // jump speed
+
+        [Header("Audio")]
+        [SerializeField] private AudioClip jumpClip;
+        [SerializeField] private AudioClip landClip;
+        [SerializeField] private AudioClip deathClip;
+
         private Vector2 jumpDirection;
 
+        private int landCounter;
 
         [Header("Collision")]
+        [SerializeField] private Collider2D collider;
         [SerializeField] private LayerMask collisionMask;
         private bool canJump = true; // if player can jump
-        private bool isJumping;
+
+        private float collisionTime;
+        private float collisionTolerance = .1f;
 
         private void Update() {
             // jump input
@@ -25,108 +39,111 @@ namespace devlog98.Player {
                 jumpDirection = Aim.instance.GetAimDirection(transform.position);
                 Jump(jumpDirection);
             }
-            else if (isJumping) {
-                // land on collision
-                JumpCollisionResult check = JumpCollisionCheck(jumpDirection, 0.64f);
-                if (!check.Success) {
-                    Land(check.CollisionPoint);
-                }
-            }
+
+            CheckDeath();
         }
 
         // jumps in a given direction
         public void Jump(Vector2 jumpDirection) {
             // only if jump is viable
-            if (JumpCollisionCheck(jumpDirection, 2.56f).Success) {
+            if (JumpCollisionCheck(jumpDirection)) {
+                // unparent from land object
+                transform.SetParent(null);
+
                 // rotate sprite
                 float rotation = Mathf.Atan2(-jumpDirection.y, -jumpDirection.x) * Mathf.Rad2Deg;
-                sprite.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
+                transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
 
                 // jump
                 rb.velocity = jumpDirection * jumpSpeed;
                 canJump = false;
-                isJumping = true;
 
                 // jump anim
                 anim.SetBool("canJump", canJump);
+                AudioManager.instance.PlayClip(jumpClip);
+
+                // collision tolerance
+                StopCoroutine(DisableCollider());
+                StartCoroutine(DisableCollider());
             }
         }
 
         // checks if jump is possible
-        private JumpCollisionResult JumpCollisionCheck(Vector2 jumpDirection, float checkDistance) {
+        private bool JumpCollisionCheck(Vector2 jumpDirection) {
             bool success = false;
-            Vector2 collisionPoint = Vector2.zero;
 
-            // cast multiple rays
-            for (int i = -1; i <= 1; i++) {
-                RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.right * 0.32f * i, jumpDirection, checkDistance, collisionMask);
-
-                if (hit.collider != null) {
-                    collisionPoint = hit.collider.ClosestPoint(transform.position);
-                    break;
-                }
-            }
-
-            if (collisionPoint == Vector2.zero) {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, jumpDirection, 1.28f, collisionMask);
+            if (hit.collider == null) {
                 success = true;
             }
 
-            return new JumpCollisionResult(success, collisionPoint);
+            return success;
         }
 
         // lands on the correct rotation
-        private void Land(Vector2 landPoint) {
-            // calculate distance on x and y axis
-            float yDistance = Mathf.Abs(landPoint.y - transform.position.y);
-            float xDistance = Mathf.Abs(landPoint.x - transform.position.x);
+        private void Land(Transform landTransform, Vector2 landPoint) {
+            // parent to land object
+            transform.SetParent(landTransform);
 
-            if (yDistance < xDistance) {
-                // landed on vertical surface
-                if (landPoint.x > transform.position.x) {
-                    sprite.rotation = Quaternion.Euler(Vector3.forward * 90);
-                }
-                else {
-                    sprite.rotation = Quaternion.Euler(Vector3.forward * 270);
-                }
-            }
-            else {
-                // landed on horizontal surface
-                if (landPoint.y > transform.position.y) {
-                    sprite.rotation = Quaternion.Euler(Vector3.forward * 180);
-                }
-                else {
-                    sprite.rotation = Quaternion.Euler(Vector3.forward * 0);
-                }
-            }
+            // rotate sprite
+            Vector2 landDirection = (landPoint - (Vector2)transform.position).normalized;
+            float rotation = Mathf.Atan2(-landDirection.y, -landDirection.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, rotation - 90f);
 
             // landing
             rb.velocity = Vector2.zero;
             canJump = true;
-            isJumping = false;
 
             // landing anim
             anim.SetBool("canJump", canJump);
+            AudioManager.instance.PlayClip(landClip);
+
+            landCounter++;
+            UIController.instance.UpdateCounter(landCounter);
         }
 
+        // disable collider on beginning of jump
+        private IEnumerator DisableCollider() {
+            collider.gameObject.SetActive(false);
+            yield return new WaitForSeconds(collisionTolerance);
+            collider.gameObject.SetActive(true);
+        }
 
+        // player death
+        private void CheckDeath() {
+            // out of bounds
+            if (transform.position.x < -10.24 || transform.position.x > 10.24 || transform.position.y < -5.12 || transform.position.y > 6.4) {
+                // reset parent
+                transform.SetParent(null);
+
+                // reset position
+                transform.position = new Vector3(0f, -3.65f, 0f);
+                transform.rotation = Quaternion.Euler(Vector3.zero);
+
+                // rest jump
+                canJump = true;
+
+                // reset velocity
+                rb.velocity = Vector3.zero;
+
+                // reset counter
+                landCounter = 0;
+                UIController.instance.UpdateCounter(landCounter);
+
+                AudioManager.instance.PlayClip(deathClip);
+            }
+        }
 
         // land on collision
-        //private void OnTriggerEnter2D(Collider2D collision) {
-        //    Land(collision.ClosestPoint(transform.position));
-        //}
-    }
+        private void OnTriggerEnter2D(Collider2D collision) {
+            if (!canJump) {
+                Land(collision.gameObject.transform, collision.ClosestPoint(transform.position));
+            }
+        }
 
-    // special struct to use on jump checks
-    public struct JumpCollisionResult {
-        private bool success;
-        private Vector2 collisionPoint;
-
-        public bool Success { get => success; }
-        public Vector2 CollisionPoint { get => collisionPoint; }
-
-        public JumpCollisionResult(bool _success, Vector2 _collisionPoint) {
-            success = _success;
-            collisionPoint = _collisionPoint;
+        private void OnDrawGizmos() {
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(transform.position, jumpDirection * 1.28f);
         }
     }
 }
