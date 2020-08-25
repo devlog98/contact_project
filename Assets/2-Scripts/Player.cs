@@ -4,6 +4,7 @@ using System.Collections;
 using devlog98.UI;
 using UnityEngine.SceneManagement;
 using devlog98.Audio;
+using devlog98.Ammunition;
 
 namespace devlog98.Player {
     public class Player : MonoBehaviour {
@@ -15,12 +16,16 @@ namespace devlog98.Player {
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private float jumpSpeed; // jump speed
 
+        [Header("Shoot")]
+        [SerializeField] private Bullet bullet;
+
         [Header("Audio")]
         [SerializeField] private AudioClip jumpClip;
         [SerializeField] private AudioClip landClip;
         [SerializeField] private AudioClip deathClip;
 
         private Vector2 jumpDirection;
+        private Vector2 shootDirection;
 
         private int landCounter;
 
@@ -38,6 +43,13 @@ namespace devlog98.Player {
                 // jump
                 jumpDirection = Aim.instance.GetAimDirection(transform.position);
                 Jump(jumpDirection);
+            }
+
+            // shoot input
+            if (Input.GetMouseButtonDown(1)) {
+                // shoot
+                shootDirection = Aim.instance.GetAimDirection(transform.position);
+                Shoot(shootDirection);
             }
 
             CheckDeath();
@@ -107,6 +119,13 @@ namespace devlog98.Player {
             collider.gameObject.SetActive(false);
             yield return new WaitForSeconds(collisionTolerance);
             collider.gameObject.SetActive(true);
+        }
+
+        private void Shoot(Vector2 shootDirection) {
+            // instantiate bullet
+            Bullet newBullet = Instantiate(bullet, transform.position, transform.rotation);
+            newBullet.Shoot(shootDirection);
+            Jump(shootDirection * -1);
         }
 
         // player death

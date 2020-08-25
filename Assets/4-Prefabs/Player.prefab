@@ -230,6 +230,7 @@ MonoBehaviour:
   sprite: {fileID: 2731341619388622675}
   rb: {fileID: 2146837818268641441}
   jumpSpeed: 5
+  bullet: {fileID: 8185300184843018644, guid: 5b29809bce3458c44913e86d103fd5c5, type: 3}
   jumpClip: {fileID: 8300000, guid: c034f85f05eb8974b90251b344fff9a6, type: 3}
   landClip: {fileID: 8300000, guid: cde8978ba4228bb48ab8ba1c2c511ece, type: 3}
   deathClip: {fileID: 8300000, guid: 2a38e705249dc32439482e2a5c18691a, type: 3}
