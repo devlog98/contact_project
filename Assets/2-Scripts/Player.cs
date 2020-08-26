@@ -16,7 +16,7 @@ namespace devlog98.Player {
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private float jumpSpeed; // jump speed
         [SerializeField] private float jumpSpeedBonus;
-        private float currentJumpSpeed;
+        public float currentJumpSpeed;
 
         [SerializeField] private int maxJumps;
         private int jumps;
@@ -38,7 +38,9 @@ namespace devlog98.Player {
         [Header("Collision")]
         [SerializeField] private Collider2D collider;
         [SerializeField] private LayerMask collisionMask;
-        private bool canJump = true; // if player can jump
+        [SerializeField] private float collisionThreshold;
+
+        private bool isLanded = true; // if player is landed on the ground
 
         private float collisionTime;
         private float collisionTolerance = .1f;
@@ -51,7 +53,7 @@ namespace devlog98.Player {
 
         private void Update() {
             // jump input
-            if (jumps <= maxJumps && Input.GetMouseButtonDown(0)) {
+            if (jumps < maxJumps && Input.GetMouseButtonDown(0)) {
                 // jump
                 jumpDirection = Aim.instance.GetAimDirection(transform.position);
                 Jump(jumpDirection);
@@ -68,37 +70,27 @@ namespace devlog98.Player {
         }
 
         // jumps in a given direction
-        public void Jump(Vector2 jumpDirection) {
+        private void Jump(Vector2 jumpDirection) {
             // only if jump is viable
-            if (JumpCollisionCheck(jumpDirection)) {
-                // unparent from land object
-                transform.SetParent(null);
-
-                // rotate sprite
-                float rotation = Mathf.Atan2(-jumpDirection.y, -jumpDirection.x) * Mathf.Rad2Deg;
-                transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
-
-                // modify speed depending on movement angle
-                Debug.Log("Angle: " + Vector2.Angle(jumpDirection, currentDirection));
-                if (Vector2.Angle(jumpDirection, currentDirection) < 30) {
-                    currentJumpSpeed += jumpSpeedBonus;
-                }
-
+            if (!isLanded || JumpCollisionCheck(jumpDirection)) {
                 // jump
-                rb.velocity = jumpDirection * currentJumpSpeed;
-                canJump = false;
+                Launch(jumpDirection);
                 jumps++;
 
-                // set direction
-                currentDirection = jumpDirection;
+                if (isLanded) {
+                    // unparent from land object
+                    transform.SetParent(null);
+
+                    // collision tolerance
+                    StopCoroutine(DisableCollider());
+                    StartCoroutine(DisableCollider());
+
+                    isLanded = false;
+                }
 
                 // jump anim
-                anim.SetBool("canJump", canJump);
+                anim.SetBool("canJump", isLanded);
                 AudioManager.instance.PlayClip(jumpClip);
-
-                // collision tolerance
-                StopCoroutine(DisableCollider());
-                StartCoroutine(DisableCollider());
             }
         }
 
@@ -106,10 +98,20 @@ namespace devlog98.Player {
         private bool JumpCollisionCheck(Vector2 jumpDirection) {
             bool success = false;
 
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, jumpDirection, 1.28f, collisionMask);
-            if (hit.collider == null) {
-                success = true;
+            Debug.Log(Vector2.Angle(jumpDirection, transform.up));
+            float jumpAngle = Vector2.Angle(jumpDirection, transform.up);
+            if (jumpAngle < 90) {
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, jumpDirection, collisionThreshold, collisionMask);
+                if (hit.collider == null) {
+                    success = true;
+                }
             }
+            //else if (jumpAngle < 125) {
+            //    RaycastHit2D hit = Physics2D.Raycast(transform.position, jumpDirection, 2.56f, collisionMask);
+            //    if (hit.collider == null) {
+            //        success = true;
+            //    }
+            //}
 
             return success;
         }
@@ -126,11 +128,11 @@ namespace devlog98.Player {
 
             // landing
             rb.velocity = Vector2.zero;
-            canJump = true;
+            isLanded = true;
             jumps = 0;
 
             // landing anim
-            anim.SetBool("canJump", canJump);
+            anim.SetBool("canJump", isLanded);
             AudioManager.instance.PlayClip(landClip);
 
             // reset speed
@@ -152,7 +154,32 @@ namespace devlog98.Player {
             // instantiate bullet
             Bullet newBullet = Instantiate(bullet, transform.position, transform.rotation);
             newBullet.Shoot(shootDirection);
-            Jump(shootDirection * -1);
+
+            // launch player if in mid air
+            if (!isLanded) {
+                Launch(shootDirection * -1);
+            }
+        }
+
+        // launches player in direction
+        private void Launch(Vector2 direction) {
+            // rotate sprite
+            float rotation = Mathf.Atan2(-direction.y, -direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
+
+            // modify speed depending on movement angle
+            if (Vector2.Angle(direction, currentDirection) < 30) {
+                currentJumpSpeed += jumpSpeedBonus;
+            }
+            else {
+                currentJumpSpeed = jumpSpeed;
+            }
+
+            // launch
+            rb.velocity = direction * currentJumpSpeed;
+
+            // set new direction
+            currentDirection = direction;
         }
 
         // player death
@@ -167,7 +194,7 @@ namespace devlog98.Player {
                 transform.rotation = Quaternion.Euler(Vector3.zero);
 
                 // rest jump
-                canJump = true;
+                isLanded = true;
 
                 // reset velocity
                 rb.velocity = Vector3.zero;
@@ -182,14 +209,19 @@ namespace devlog98.Player {
 
         // land on collision
         private void OnTriggerEnter2D(Collider2D collision) {
-            if (!canJump) {
+            if (!isLanded) {
                 Land(collision.gameObject.transform, collision.ClosestPoint(transform.position));
             }
         }
 
         private void OnDrawGizmos() {
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(transform.position, jumpDirection * 1.28f);
+            Gizmos.DrawRay(transform.position, jumpDirection * collisionThreshold);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, transform.up * 1.28f);
+            Gizmos.DrawRay(transform.position, transform.right * -1.28f);
+            Gizmos.DrawRay(transform.position, transform.right * 1.28f);
         }
     }
 }
