@@ -15,6 +15,11 @@ namespace devlog98.Player {
         [Header("Jump")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private float jumpSpeed; // jump speed
+        [SerializeField] private float jumpSpeedBonus;
+        private float currentJumpSpeed;
+
+        [SerializeField] private int maxJumps;
+        private int jumps;
 
         [Header("Shoot")]
         [SerializeField] private Bullet bullet;
@@ -24,6 +29,7 @@ namespace devlog98.Player {
         [SerializeField] private AudioClip landClip;
         [SerializeField] private AudioClip deathClip;
 
+        private Vector2 currentDirection;
         private Vector2 jumpDirection;
         private Vector2 shootDirection;
 
@@ -37,9 +43,15 @@ namespace devlog98.Player {
         private float collisionTime;
         private float collisionTolerance = .1f;
 
+        // initial setup
+        private void Start() {
+            currentDirection = Vector2.zero;
+            currentJumpSpeed = jumpSpeed;
+        }
+
         private void Update() {
             // jump input
-            if (canJump && Input.GetMouseButtonDown(0)) {
+            if (jumps <= maxJumps && Input.GetMouseButtonDown(0)) {
                 // jump
                 jumpDirection = Aim.instance.GetAimDirection(transform.position);
                 Jump(jumpDirection);
@@ -66,9 +78,19 @@ namespace devlog98.Player {
                 float rotation = Mathf.Atan2(-jumpDirection.y, -jumpDirection.x) * Mathf.Rad2Deg;
                 transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
 
+                // modify speed depending on movement angle
+                Debug.Log("Angle: " + Vector2.Angle(jumpDirection, currentDirection));
+                if (Vector2.Angle(jumpDirection, currentDirection) < 30) {
+                    currentJumpSpeed += jumpSpeedBonus;
+                }
+
                 // jump
-                rb.velocity = jumpDirection * jumpSpeed;
+                rb.velocity = jumpDirection * currentJumpSpeed;
                 canJump = false;
+                jumps++;
+
+                // set direction
+                currentDirection = jumpDirection;
 
                 // jump anim
                 anim.SetBool("canJump", canJump);
@@ -105,10 +127,15 @@ namespace devlog98.Player {
             // landing
             rb.velocity = Vector2.zero;
             canJump = true;
+            jumps = 0;
 
             // landing anim
             anim.SetBool("canJump", canJump);
             AudioManager.instance.PlayClip(landClip);
+
+            // reset speed
+            currentJumpSpeed = jumpSpeed;
+            currentDirection = Vector2.zero;
 
             landCounter++;
             UIController.instance.UpdateCounter(landCounter);
