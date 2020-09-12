@@ -32,5 +32,10 @@ namespace devlog98.Mouse {
         public Vector2 GetAimDirection(Vector2 position) {
             return (mousePosition - position).normalized; 
         }
+
+        // return mouse position
+        public Vector2 GetAimPosition() {
+            return mousePosition;
+        }
     }
 }

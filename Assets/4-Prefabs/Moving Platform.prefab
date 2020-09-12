@@ -365,6 +365,7 @@ MonoBehaviour:
   - {fileID: 666830317756025383}
   cyclicPath: 0
   moveSpeed: 3
+  rb: {fileID: 0}
 --- !u!1 &8649400563935672253
 GameObject:
   m_ObjectHideFlags: 0

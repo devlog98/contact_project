@@ -21,6 +21,11 @@ namespace devlog98.Player {
         [SerializeField] private float jumpSpeedAngle; // max angle difference for bonus speed to be applied
         private int jumpCount; // how many times has the player jumped right now
 
+        [Header("Walk")]
+        [SerializeField] private float walkSpeed;
+        [SerializeField] Transform walkPoint;
+        private bool isWalking;
+
         [Header("Shoot")]
         [SerializeField] private List<Bullet> bullets; // list of player ammunition
         [SerializeField] private float shootSpeed; // default shoot speed
@@ -58,6 +63,10 @@ namespace devlog98.Player {
             }
 
             CheckOutOfBounds();
+        }
+
+        private void FixedUpdate() {
+            Walk();
         }
 
         // jumps in a given direction
@@ -108,6 +117,7 @@ namespace devlog98.Player {
                     }
                 }
 
+                WalkStart();
                 return false;
             }
         }
@@ -145,6 +155,41 @@ namespace devlog98.Player {
             collider.gameObject.SetActive(false);
             yield return new WaitForSeconds(collisionTolerance);
             collider.gameObject.SetActive(true);
+        }
+
+        private void WalkStart() {
+            Vector2 aimPosition = Aim.instance.GetAimPosition();
+
+            Vector2 landPoint = transform.parent.GetComponent<Collider2D>().ClosestPoint(aimPosition);
+            Vector2 landDirection = ((Vector2)aimPosition - landPoint).normalized;
+
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, -collisionDistance, collisionMask);
+
+            walkPoint.parent = transform.parent;
+            walkPoint.position = landPoint + (landDirection * hit.distance);
+
+            isWalking = true;
+        }
+
+        private void Walk() {
+            if (WalkCheck()) {
+                //calculates interpolated distance player will walk
+                Vector2 movePosition = new Vector2();
+                movePosition.x = Mathf.MoveTowards(transform.localPosition.x, walkPoint.localPosition.x, walkSpeed * Time.deltaTime);
+                movePosition.y = Mathf.MoveTowards(transform.localPosition.y, walkPoint.localPosition.y, walkSpeed * Time.deltaTime);
+
+                //executes walking
+                rb.MovePosition(movePosition);
+            }
+        }
+
+        private bool WalkCheck() {
+            
+            if (isWalking) {
+                isWalking = transform.position != walkPoint.position ? true : false;
+            }
+
+            return isWalking;
         }
 
         private void Shoot(Vector2 shootDirection) {
@@ -209,7 +254,7 @@ namespace devlog98.Player {
             transform.rotation = Quaternion.Euler(Vector3.zero);
 
             transform.SetParent(null); // reset parent
-            
+
             isGrounded = true; // reset jump
 
             // death feedback
@@ -229,6 +274,9 @@ namespace devlog98.Player {
             Gizmos.DrawRay(transform.position, transform.up * 1.28f);
             Gizmos.DrawRay(transform.position, transform.right * -1.28f);
             Gizmos.DrawRay(transform.position, transform.right * 1.28f);
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawCube(walkPoint.position, Vector3.one * 0.32f);
         }
     }
 }
