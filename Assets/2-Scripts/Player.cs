@@ -175,8 +175,8 @@ namespace devlog98.Player {
             if (WalkCheck()) {
                 //calculates interpolated distance player will walk
                 Vector2 movePosition = new Vector2();
-                movePosition.x = Mathf.MoveTowards(transform.localPosition.x, walkPoint.localPosition.x, walkSpeed * Time.deltaTime);
-                movePosition.y = Mathf.MoveTowards(transform.localPosition.y, walkPoint.localPosition.y, walkSpeed * Time.deltaTime);
+                movePosition.x = Mathf.MoveTowards(transform.position.x, walkPoint.position.x, walkSpeed * Time.deltaTime);
+                movePosition.y = Mathf.MoveTowards(transform.position.y, walkPoint.position.y, walkSpeed * Time.deltaTime);
 
                 //executes walking
                 rb.MovePosition(movePosition);
