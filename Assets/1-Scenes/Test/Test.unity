@@ -592,7 +592,7 @@ PrefabInstance:
     - target: {fileID: 5776990290329919395, guid: cf5d5c33ece10bb45a3c12f18af6fd18,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.68
+      value: -3.66
       objectReference: {fileID: 0}
     - target: {fileID: 5776990290329919395, guid: cf5d5c33ece10bb45a3c12f18af6fd18,
         type: 3}
@@ -2847,6 +2847,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Rotating Platform
+      objectReference: {fileID: 0}
+    - target: {fileID: 6522188517622525114, guid: 4952da52b692e6a409fcca82c17f36b4,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6522188517622525115, guid: 4952da52b692e6a409fcca82c17f36b4,
         type: 3}

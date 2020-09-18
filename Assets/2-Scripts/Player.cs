@@ -20,6 +20,7 @@ namespace devlog98.Player {
         [SerializeField] private float jumpSpeedBonus; // speed increase when chaining multiple jumps
         [SerializeField] private float jumpSpeedAngle; // max angle difference for bonus speed to be applied
         private int jumpCount; // how many times has the player jumped right now
+        private bool isJumping;
 
         [Header("Walk")]
         [SerializeField] private float walkSpeed;
@@ -61,7 +62,7 @@ namespace devlog98.Player {
                 Vector2 shootDirection = Aim.instance.GetAimDirection(transform.position);
                 Shoot(shootDirection);
             }
-
+            
             CheckOutOfBounds();
         }
 
@@ -75,7 +76,7 @@ namespace devlog98.Player {
             if (JumpCheck(jumpDirection)) {
                 if (isGrounded) {
                     // unparent from land object
-                    transform.SetParent(null);
+                    transform.SetParent(null, true);
 
                     // collision tolerance
                     StopCoroutine(DisableCollider());
@@ -91,6 +92,9 @@ namespace devlog98.Player {
                 // jump feedback
                 anim.SetBool("canJump", isGrounded);
                 AudioManager.instance.PlayClip(jumpClip);
+
+                isJumping = true;
+                isWalking = false;
             }
         }
 
@@ -125,7 +129,7 @@ namespace devlog98.Player {
         // lands on the correct rotation
         private void Land(Transform landTransform, Vector2 landPoint) {
             // parent to land object
-            transform.SetParent(landTransform);
+            transform.SetParent(landTransform, true);
             isGrounded = true;
 
             // landing
@@ -146,6 +150,8 @@ namespace devlog98.Player {
             currentDirection = Vector2.zero;
             currentSpeed = 0;
 
+            isJumping = false;
+
             // update land counter
             UIController.instance.UpdateCounter(landCounter);
         }
@@ -163,30 +169,38 @@ namespace devlog98.Player {
             Vector2 landPoint = transform.parent.GetComponent<Collider2D>().ClosestPoint(aimPosition);
             Vector2 landDirection = ((Vector2)aimPosition - landPoint).normalized;
 
+            // raycast
             RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, -collisionDistance, collisionMask);
+            float heightDistance = hit.distance;
 
             walkPoint.parent = transform.parent;
             walkPoint.position = landPoint + (landDirection * hit.distance);
+
+            // rotate sprite
+            float rotation = Mathf.Atan2(-landDirection.y, -landDirection.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
 
             isWalking = true;
         }
 
         private void Walk() {
             if (WalkCheck()) {
-                //calculates interpolated distance player will walk
-                Vector2 movePosition = new Vector2();
-                movePosition.x = Mathf.MoveTowards(transform.position.x, walkPoint.position.x, walkSpeed * Time.deltaTime);
-                movePosition.y = Mathf.MoveTowards(transform.position.y, walkPoint.position.y, walkSpeed * Time.deltaTime);
-
                 //executes walking
-                rb.MovePosition(movePosition);
+                transform.position = Vector2.MoveTowards(transform.position, walkPoint.position, walkSpeed * Time.deltaTime);
             }
         }
 
         private bool WalkCheck() {
-            
             if (isWalking) {
-                isWalking = transform.position != walkPoint.position ? true : false;
+                RaycastHit2D hit = Physics2D.Linecast(transform.position, walkPoint.position, collisionMask);
+                // if no object will collide with player jump
+                
+                if (hit.collider != null) {
+                    isWalking = false;
+                }
+                else {
+                    isWalking = transform.position != walkPoint.position ? true : false;
+                }
             }
 
             return isWalking;
