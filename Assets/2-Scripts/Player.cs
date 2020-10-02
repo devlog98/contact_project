@@ -5,6 +5,7 @@ using devlog98.UI;
 using devlog98.Audio;
 using devlog98.Ammunition;
 using System.Collections.Generic;
+using PathCreation;
 
 namespace devlog98.Player {
     public class Player : MonoBehaviour {
@@ -25,6 +26,7 @@ namespace devlog98.Player {
         [Header("Walk")]
         [SerializeField] private float walkSpeed;
         [SerializeField] Transform walkPoint;
+        [SerializeField] PathCreator pathCreator;
         private bool isWalking;
 
         [Header("Shoot")]
@@ -62,12 +64,10 @@ namespace devlog98.Player {
                 Vector2 shootDirection = Aim.instance.GetAimDirection(transform.position);
                 Shoot(shootDirection);
             }
-            
-            CheckOutOfBounds();
-        }
 
-        private void FixedUpdate() {
             Walk();
+
+            CheckOutOfBounds();
         }
 
         // jumps in a given direction
@@ -163,18 +163,16 @@ namespace devlog98.Player {
             collider.gameObject.SetActive(true);
         }
 
+        // initialize walk 
         private void WalkStart() {
             Vector2 aimPosition = Aim.instance.GetAimPosition();
 
+            pathCreator = transform.parent.GetComponentInChildren<PathCreator>();
+            walkPoint.position = pathCreator.path.GetClosestPointOnPath(aimPosition);
+            walkPoint.parent = transform.parent;
+
             Vector2 landPoint = transform.parent.GetComponent<Collider2D>().ClosestPoint(aimPosition);
             Vector2 landDirection = ((Vector2)aimPosition - landPoint).normalized;
-
-            // raycast
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, -collisionDistance, collisionMask);
-            float heightDistance = hit.distance;
-
-            walkPoint.parent = transform.parent;
-            walkPoint.position = landPoint + (landDirection * hit.distance);
 
             // rotate sprite
             float rotation = Mathf.Atan2(-landDirection.y, -landDirection.x) * Mathf.Rad2Deg;
@@ -186,7 +184,7 @@ namespace devlog98.Player {
         private void Walk() {
             if (WalkCheck()) {
                 //executes walking
-                transform.position = Vector2.MoveTowards(transform.position, walkPoint.position, walkSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, walkPoint.position, walkSpeed * Time.deltaTime);
             }
         }
 
