@@ -6,9 +6,10 @@ using devlog98.Audio;
 using devlog98.Ammunition;
 using System.Collections.Generic;
 using PathCreation;
+using devlog98.Boundaries;
 
 namespace devlog98.Player {
-    public class Player : MonoBehaviour {
+    public class Player : MonoBehaviour, IBounded {
         [Header("Movement")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private Collider2D collider;
@@ -66,8 +67,6 @@ namespace devlog98.Player {
             }
 
             Walk();
-
-            CheckOutOfBounds();
         }
 
         // jumps in a given direction
@@ -242,19 +241,17 @@ namespace devlog98.Player {
             currentDirection = direction;
         }
 
-        // player death
-        private void CheckOutOfBounds() {
-            // out of bounds
-            if (transform.position.x < -10.24 || transform.position.x > 10.24 || transform.position.y < -5.12 || transform.position.y > 6.4) {
-                Die();
-            }
-        }
-
         // land on collision
         private void OnTriggerEnter2D(Collider2D collision) {
             if (!isGrounded && collision.gameObject.tag != "Bullet") {
                 Land(collision.gameObject.transform, collision.ClosestPoint(transform.position));
             }
+        }
+
+        // IBounded implementation
+        // activate player death
+        public void OutOfBounds() {
+            Die();
         }
 
         // player death

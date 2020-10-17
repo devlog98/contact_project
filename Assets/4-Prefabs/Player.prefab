@@ -187,6 +187,7 @@ GameObject:
   - component: {fileID: 2146837818268641441}
   - component: {fileID: 1160962284189307486}
   - component: {fileID: 4341019592226273012}
+  - component: {fileID: 2568616321220520372}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -272,6 +273,7 @@ MonoBehaviour:
   jumpSpeedAngle: 30
   walkSpeed: 5
   walkPoint: {fileID: 951061290011868030}
+  pathCreator: {fileID: 0}
   bullets:
   - {fileID: 2752006959207964938}
   - {fileID: 230961163238831670}
@@ -291,6 +293,21 @@ MonoBehaviour:
   jumpClip: {fileID: 8300000, guid: c034f85f05eb8974b90251b344fff9a6, type: 3}
   landClip: {fileID: 8300000, guid: cde8978ba4228bb48ab8ba1c2c511ece, type: 3}
   deathClip: {fileID: 8300000, guid: 2a38e705249dc32439482e2a5c18691a, type: 3}
+--- !u!114 &2568616321220520372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5776990290329919397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2f1209212674894bab6c95e031b1971, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collider: {fileID: 3214330276825829388}
+  boundaries: {fileID: 0}
+  frameInterval: 15
 --- !u!1 &6102001449453524337
 GameObject:
   m_ObjectHideFlags: 0

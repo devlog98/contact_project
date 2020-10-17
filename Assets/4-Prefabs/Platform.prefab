@@ -176,6 +176,7 @@ GameObject:
   - component: {fileID: 6762454171402824287}
   - component: {fileID: 2591074728626932659}
   - component: {fileID: 5554749438779908905}
+  - component: {fileID: 1054784403380616199}
   m_Layer: 8
   m_Name: Platform
   m_TagString: Untagged
@@ -259,7 +260,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 6762454171402824287}
   launchSpeed: 2
-  launchDuration: 15
+--- !u!114 &1054784403380616199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4813935477102841155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2f1209212674894bab6c95e031b1971, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collider: {fileID: 2591074728626932659}
+  boundaries: {fileID: 0}
+  frameInterval: 99
 --- !u!1 &8163294775274930378
 GameObject:
   m_ObjectHideFlags: 0

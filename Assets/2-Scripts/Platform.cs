@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+﻿using devlog98.Boundaries;
+using UnityEngine;
 
 namespace devlog98.Obstacle {
-    public class Platform : MonoBehaviour {
+    public class Platform : MonoBehaviour, IBounded {
         [Header("Launch")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private float launchSpeed;
-        [SerializeField] private float launchDuration;
 
         private System.Random randomizer = new System.Random();
 
@@ -23,14 +23,11 @@ namespace devlog98.Obstacle {
 
             // apply force
             rb.velocity = launchDirection * launchSpeed;
-
-            // disable after amount of time
-            Invoke("Disable", launchDuration);
         }
 
+        // IBounded implementation
         // disable platform
-        public void Disable() {
-            CancelInvoke("Disable");
+        public void OutOfBounds() {
             gameObject.SetActive(false);
         }
     }
