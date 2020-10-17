@@ -187,6 +187,7 @@ GameObject:
   - component: {fileID: 2146837818268641441}
   - component: {fileID: 1160962284189307486}
   - component: {fileID: 4341019592226273012}
+  - component: {fileID: 7220447751513516951}
   - component: {fileID: 2568616321220520372}
   m_Layer: 0
   m_Name: Player
@@ -207,7 +208,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2747101373891833767}
-  - {fileID: 951061290011868030}
+  - {fileID: 7055239454265278514}
   - {fileID: 2013087391085444609}
   - {fileID: 2731341619388622675}
   m_Father: {fileID: 0}
@@ -271,9 +272,7 @@ MonoBehaviour:
   jumpSpeed: 5
   jumpSpeedBonus: 1.5
   jumpSpeedAngle: 30
-  walkSpeed: 5
-  walkPoint: {fileID: 951061290011868030}
-  pathCreator: {fileID: 0}
+  walk: {fileID: 7220447751513516951}
   bullets:
   - {fileID: 2752006959207964938}
   - {fileID: 230961163238831670}
@@ -293,6 +292,20 @@ MonoBehaviour:
   jumpClip: {fileID: 8300000, guid: c034f85f05eb8974b90251b344fff9a6, type: 3}
   landClip: {fileID: 8300000, guid: cde8978ba4228bb48ab8ba1c2c511ece, type: 3}
   deathClip: {fileID: 8300000, guid: 2a38e705249dc32439482e2a5c18691a, type: 3}
+--- !u!114 &7220447751513516951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5776990290329919397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77aa8ef33eb7ec74e9a7ae35d73049b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkSpeed: 5
+  walkPoint: {fileID: 7055239454265278514}
 --- !u!114 &2568616321220520372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,7 +321,7 @@ MonoBehaviour:
   collider: {fileID: 3214330276825829388}
   boundaries: {fileID: 0}
   frameInterval: 15
---- !u!1 &6102001449453524337
+--- !u!1 &5861432674530657352
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -316,7 +329,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 951061290011868030}
+  - component: {fileID: 7055239454265278514}
   m_Layer: 0
   m_Name: Walk Point
   m_TagString: Untagged
@@ -324,14 +337,14 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &951061290011868030
+--- !u!4 &7055239454265278514
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6102001449453524337}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_GameObject: {fileID: 5861432674530657352}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []

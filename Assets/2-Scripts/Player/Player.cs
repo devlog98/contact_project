@@ -5,11 +5,12 @@ using devlog98.UI;
 using devlog98.Audio;
 using devlog98.Ammunition;
 using System.Collections.Generic;
-using PathCreation;
 using devlog98.Boundaries;
 
 namespace devlog98.Player {
     public class Player : MonoBehaviour, IBounded {
+        public static Player instance; // singleton
+
         [Header("Movement")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private Collider2D collider;
@@ -25,10 +26,7 @@ namespace devlog98.Player {
         private bool isJumping;
 
         [Header("Walk")]
-        [SerializeField] private float walkSpeed;
-        [SerializeField] Transform walkPoint;
-        [SerializeField] PathCreator pathCreator;
-        private bool isWalking;
+        [SerializeField] private Walk walk;
 
         [Header("Shoot")]
         [SerializeField] private List<Bullet> bullets; // list of player ammunition
@@ -42,6 +40,8 @@ namespace devlog98.Player {
         private float collisionTolerance = .1f; // period collider will be turned off for smooth launching
         private bool isGrounded = true; // if player is on the ground
 
+        public LayerMask CollisionMask { get { return collisionMask; } }
+
         [Header("Animation")]
         [SerializeField] private Animator anim;
         [SerializeField] private Transform sprite;
@@ -52,6 +52,16 @@ namespace devlog98.Player {
         [SerializeField] private AudioClip deathClip;
 
         private int landCounter; // times player landed on the ground
+
+        // singleton setup
+        private void Awake() {
+            if (instance != null && instance != this) {
+                Destroy(this.gameObject);
+            }
+            else {
+                instance = this;
+            }
+        }
 
         private void Update() {
             // jump
@@ -66,7 +76,7 @@ namespace devlog98.Player {
                 Shoot(shootDirection);
             }
 
-            Walk();
+            walk.ExecuteUpdate();
         }
 
         // jumps in a given direction
@@ -93,7 +103,7 @@ namespace devlog98.Player {
                 AudioManager.instance.PlayClip(jumpClip);
 
                 isJumping = true;
-                isWalking = false;
+                walk.ExecuteEnd();
             }
         }
 
@@ -120,7 +130,7 @@ namespace devlog98.Player {
                     }
                 }
 
-                WalkStart();
+                walk.ExecuteStart();
                 return false;
             }
         }
@@ -160,47 +170,6 @@ namespace devlog98.Player {
             collider.gameObject.SetActive(false);
             yield return new WaitForSeconds(collisionTolerance);
             collider.gameObject.SetActive(true);
-        }
-
-        // initialize walk 
-        private void WalkStart() {
-            Vector2 aimPosition = Aim.instance.GetAimPosition();
-
-            pathCreator = transform.parent.GetComponentInChildren<PathCreator>();
-            walkPoint.position = pathCreator.path.GetClosestPointOnPath(aimPosition);
-            walkPoint.parent = transform.parent;
-
-            Vector2 landPoint = transform.parent.GetComponent<Collider2D>().ClosestPoint(aimPosition);
-            Vector2 landDirection = ((Vector2)aimPosition - landPoint).normalized;
-
-            // rotate sprite
-            float rotation = Mathf.Atan2(-landDirection.y, -landDirection.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, 0f, rotation + 90f);
-
-            isWalking = true;
-        }
-
-        private void Walk() {
-            if (WalkCheck()) {
-                //executes walking
-                transform.position = Vector3.MoveTowards(transform.position, walkPoint.position, walkSpeed * Time.deltaTime);
-            }
-        }
-
-        private bool WalkCheck() {
-            if (isWalking) {
-                RaycastHit2D hit = Physics2D.Linecast(transform.position, walkPoint.position, collisionMask);
-                // if no object will collide with player jump
-                
-                if (hit.collider != null) {
-                    isWalking = false;
-                }
-                else {
-                    isWalking = transform.position != walkPoint.position ? true : false;
-                }
-            }
-
-            return isWalking;
         }
 
         private void Shoot(Vector2 shootDirection) {
@@ -283,9 +252,6 @@ namespace devlog98.Player {
             Gizmos.DrawRay(transform.position, transform.up * 1.28f);
             Gizmos.DrawRay(transform.position, transform.right * -1.28f);
             Gizmos.DrawRay(transform.position, transform.right * 1.28f);
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawCube(walkPoint.position, Vector3.one * 0.32f);
         }
     }
 }
