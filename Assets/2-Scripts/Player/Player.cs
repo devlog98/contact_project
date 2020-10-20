@@ -7,7 +7,7 @@ using devlog98.Ammunition;
 using System.Collections.Generic;
 using devlog98.Boundaries;
 
-namespace devlog98.Player {
+namespace devlog98.Actor {
     public class Player : MonoBehaviour, IBounded {
         public static Player instance; // singleton
 
@@ -37,6 +37,7 @@ namespace devlog98.Player {
         [Header("Collision")]
         [SerializeField] private LayerMask collisionMask; // mask that can collide with player
         [SerializeField] private float collisionDistance; // how far mask check will go
+        private readonly List<string> collisionTags = new List<string>() { "Bullet", "Collectable" }; // what Player can collide without landing on
         private float collisionTolerance = .1f; // period collider will be turned off for smooth launching
         private bool isGrounded = true; // if player is on the ground
 
@@ -212,7 +213,7 @@ namespace devlog98.Player {
 
         // land on collision
         private void OnTriggerEnter2D(Collider2D collision) {
-            if (!isGrounded && collision.gameObject.tag != "Bullet") {
+            if (!isGrounded && !collisionTags.Contains(collision.gameObject.tag)) {
                 Land(collision.gameObject.transform, collision.ClosestPoint(transform.position));
             }
         }

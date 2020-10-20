@@ -7,7 +7,7 @@ using UnityEngine;
  * Walk on surfaces using PathCreator bezier curve
  */ 
 
-namespace devlog98.Player {
+namespace devlog98.Actor {
     public class Walk : MonoBehaviour {
         private Dictionary<int, VertexPath> pathDictionary = new Dictionary<int, VertexPath>();
 
